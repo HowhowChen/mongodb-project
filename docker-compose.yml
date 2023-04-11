@@ -1,0 +1,55 @@
+version: "3.7"
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - app-net
+    ports:
+      - "27017:27017"
+    
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://root:password@mongodb:27017/
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass12345
+    volumes:
+      - mongodb-data:/data/db
+    depends_on:
+      - mongodb
+    networks:
+      - app-net
+    ports:
+      - "8081:8081"
+
+  web:
+    image: howhowchen/mongoweb
+    build: ./
+    container_name: mongoweb
+    restart: "always"
+    environment:
+      - MONGODB_DEV_URI=mongodb://root:password@mongodb/mongoose_dev
+    depends_on:             
+      - mongodb
+    networks:
+      - app-net
+    ports:
+      - "8080:3000"
+
+volumes:
+  mongodb-data:
+    name: mongodb-data
+
+networks:
+  app-net:
+    name: mongo-dev
